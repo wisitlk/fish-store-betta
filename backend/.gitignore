@@ -1,0 +1,5 @@
+*.db
+uploads/
+.env
+docs/
+.DS_Store
