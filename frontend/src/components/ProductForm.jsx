@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL } from '../config/api';
 
 const ProductForm = ({ onSuccess, onCancel }) => {
     const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ const ProductForm = ({ onSuccess, onCancel }) => {
             }
 
             const token = localStorage.getItem('auth_token');
-            const response = await fetch('http://localhost:8080/api/admin/products', {
+            const response = await fetch(`${API_URL}/api/admin/products`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -67,30 +68,33 @@ const ProductForm = ({ onSuccess, onCancel }) => {
     const inputStyle = {
         width: '100%',
         padding: '0.8rem',
-        backgroundColor: '#222',
-        border: '1px solid #444',
-        color: '#fff',
+        backgroundColor: '#fff',
+        border: '1px solid var(--border-color)',
+        color: 'var(--text-primary)',
         borderRadius: '4px',
-        marginBottom: '1rem'
+        marginBottom: '1rem',
+        boxSizing: 'border-box'
     };
 
     const labelStyle = {
         display: 'block',
         marginBottom: '0.5rem',
         color: 'var(--text-secondary)',
-        fontSize: '0.9rem'
+        fontSize: '0.85rem',
+        fontWeight: 600
     };
 
     return (
         <div style={{
             backgroundColor: 'var(--bg-card)',
             padding: '2rem',
-            borderRadius: 'var(--radius-lg)',
+            borderRadius: 'var(--radius-md)',
             maxWidth: '800px',
             margin: '0 auto',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid var(--border-color)',
+            boxShadow: 'var(--shadow-card)'
         }}>
-            <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
+            <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', fontSize: '1.2rem' }}>
                 Add Unique Inventory Item
             </h2>
 
@@ -196,21 +200,21 @@ const ProductForm = ({ onSuccess, onCancel }) => {
 
                         <label style={labelStyle}>Media (Images & Video)</label>
                         <div style={{
-                            border: '2px dashed #444',
+                            border: '2px dashed var(--border-color)',
                             padding: '2rem',
                             textAlign: 'center',
                             borderRadius: '4px',
                             cursor: 'pointer',
-                            backgroundColor: '#1a1a1a'
+                            backgroundColor: 'var(--bg-secondary)'
                         }}>
                             <input
                                 type="file"
                                 multiple
                                 accept="image/*,video/*"
                                 onChange={handleFileChange}
-                                style={{ color: '#fff' }}
+                                style={{ color: 'var(--text-primary)' }}
                             />
-                            <p style={{ marginTop: '0.5rem', color: '#888', fontSize: '0.8rem' }}>
+                            <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                                 Supports JPG, PNG, MP4. First image will be thumbnail.
                             </p>
                         </div>
@@ -221,14 +225,10 @@ const ProductForm = ({ onSuccess, onCancel }) => {
                     <button
                         type="submit"
                         disabled={loading}
+                        className="btn-cta"
                         style={{
                             flex: 1,
                             padding: '1rem',
-                            backgroundColor: 'var(--accent-color)',
-                            color: '#000',
-                            fontWeight: 'bold',
-                            border: 'none',
-                            borderRadius: '4px',
                             cursor: loading ? 'not-allowed' : 'pointer',
                             opacity: loading ? 0.7 : 1
                         }}
@@ -242,8 +242,8 @@ const ProductForm = ({ onSuccess, onCancel }) => {
                             style={{
                                 padding: '1rem 2rem',
                                 backgroundColor: 'transparent',
-                                border: '1px solid #444',
-                                color: '#fff',
+                                border: '1px solid var(--border-color)',
+                                color: 'var(--text-secondary)',
                                 borderRadius: '4px',
                                 cursor: 'pointer'
                             }}

@@ -10,9 +10,9 @@ const TrustSignals = () => {
 
     return (
         <section style={{
-            backgroundColor: 'var(--bg-secondary)',
+            backgroundColor: 'var(--bg-primary)',
             padding: 'var(--spacing-md) 0',
-            borderBottom: '1px solid rgba(255,255,255,0.05)'
+            borderBottom: '1px solid var(--border-color)'
         }}>
             <div className="container">
                 <div style={{
@@ -24,14 +24,24 @@ const TrustSignals = () => {
                     {signals.map((s, index) => (
                         <div key={index} style={{
                             display: 'flex',
-                            flexDirection: 'column',
                             alignItems: 'center',
-                            gap: 'var(--spacing-xs)'
+                            justifyContent: 'center',
+                            gap: '0.85rem'
                         }}>
-                            <span style={{ fontSize: '2rem' }}>{s.icon}</span>
-                            <div>
-                                <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{s.title}</h4>
-                                <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{s.desc}</p>
+                            <span style={{
+                                fontSize: '1.6rem',
+                                backgroundColor: 'var(--brand-blue-light)',
+                                borderRadius: '50%',
+                                width: '52px',
+                                height: '52px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                            }}>{s.icon}</span>
+                            <div style={{ textAlign: 'left' }}>
+                                <h4 style={{ margin: 0, fontSize: '0.95rem', color: 'var(--navy)' }}>{s.title}</h4>
+                                <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{s.desc}</p>
                             </div>
                         </div>
                     ))}

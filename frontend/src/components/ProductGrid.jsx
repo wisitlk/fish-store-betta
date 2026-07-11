@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ProductCard from './ProductCard';
 import { mockProducts } from '../mockData';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { API_URL } from '../config/api';
 
 const ProductGrid = () => {
     const [products, setProducts] = useState([]);
@@ -9,7 +10,7 @@ const ProductGrid = () => {
     const elementsRef = useScrollAnimation();
 
     useEffect(() => {
-        fetch('http://localhost:8080/api/products')
+        fetch(`${API_URL}/api/products`)
             .then(res => res.json())
             .then(data => {
                 if (data && data.length > 0) {
@@ -38,9 +39,12 @@ const ProductGrid = () => {
                         key={b}
                         onClick={() => setFilter(b)}
                         style={{
-                            backgroundColor: filter === b ? 'var(--accent-color)' : 'transparent',
-                            color: filter === b ? '#000' : 'var(--text-secondary)',
-                            border: '1px solid var(--text-secondary)'
+                            backgroundColor: filter === b ? 'var(--brand-blue)' : 'var(--bg-card)',
+                            color: filter === b ? '#fff' : 'var(--text-secondary)',
+                            border: filter === b ? '1px solid var(--brand-blue)' : '1px solid var(--border-color)',
+                            borderRadius: '20px',
+                            fontWeight: 600,
+                            padding: '0.45rem 1.2rem'
                         }}
                     >
                         {b}

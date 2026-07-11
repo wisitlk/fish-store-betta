@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { API_URL } from '../config/api';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -7,7 +8,7 @@ const ProductDetail = () => {
     const [activeMedia, setActiveMedia] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/api/products/${id}`)
+        fetch(`${API_URL}/api/products/${id}`)
             .then(res => res.json())
             .then(data => {
                 setProduct(data);
@@ -35,7 +36,7 @@ const ProductDetail = () => {
     const getFullUrl = (url) => {
         if (!url) return '';
         if (url.startsWith('http')) return url;
-        return `http://localhost:8080${url}`;
+        return `${API_URL}${url}`;
     };
 
     return (
@@ -52,11 +53,11 @@ const ProductDetail = () => {
                     <div style={{
                         width: '100%',
                         aspectRatio: '1',
-                        backgroundColor: '#000',
+                        backgroundColor: 'var(--bg-secondary)',
                         borderRadius: 'var(--radius-md)',
                         overflow: 'hidden',
                         marginBottom: '1rem',
-                        border: '1px solid #222',
+                        border: '1px solid var(--border-color)',
                         position: 'relative'
                     }}>
                         {activeMedia?.type === 'video' ? (
@@ -75,7 +76,7 @@ const ProductDetail = () => {
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         )}
-                        {!activeMedia && <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#555' }}>No Media</div>}
+                        {!activeMedia && <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No Media</div>}
                     </div>
 
                     {/* Thumbnails */}
@@ -110,12 +111,12 @@ const ProductDetail = () => {
                         {product.breed} | {product.sku || product.id}
                     </div>
 
-                    <h1 style={{ fontSize: '3rem', fontFamily: 'var(--font-display)', marginBottom: '1rem', lineHeight: 1.1 }}>
+                    <h1 style={{ fontSize: '2.4rem', marginBottom: '1rem', lineHeight: 1.1 }}>
                         {product.name}
                     </h1>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' }}>
-                        <div style={{ fontSize: '2rem', color: 'var(--accent-color)', fontWeight: 'bold' }}>
+                        <div style={{ fontSize: '2rem', color: 'var(--navy)', fontWeight: 'bold' }}>
                             ${product.price.toFixed(2)}
                         </div>
                         {product.status === 'Active' ? (
@@ -132,8 +133,8 @@ const ProductDetail = () => {
                             </span>
                         ) : (
                             <span style={{
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                                color: '#aaa',
+                                backgroundColor: 'var(--bg-secondary)',
+                                color: 'var(--text-muted)',
                                 padding: '0.4rem 1rem',
                                 borderRadius: '50px',
                                 fontSize: '0.9rem',
@@ -148,23 +149,23 @@ const ProductDetail = () => {
                         {product.description}
                     </div>
 
-                    <div style={{ backgroundColor: 'var(--bg-card)', borderRadius: '8px', padding: '1.5rem', marginBottom: '2rem' }}>
+                    <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', padding: '1.5rem', marginBottom: '2rem', border: '1px solid var(--border-color)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Spec Sheet</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.95rem' }}>
-                            <div style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: '#888' }}>Gender</span> <br />
+                            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Gender</span> <br />
                                 {product.gender || 'N/A'}
                             </div>
-                            <div style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: '#888' }}>Size</span> <br />
+                            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Size</span> <br />
                                 {product.size || 'N/A'}
                             </div>
-                            <div style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: '#888' }}>Age</span> <br />
+                            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Age</span> <br />
                                 {product.age || 'N/A'}
                             </div>
-                            <div style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-                                <span style={{ color: '#888' }}>Pattern</span> <br />
+                            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>Pattern</span> <br />
                                 {product.color_pattern || 'N/A'}
                             </div>
                         </div>
@@ -174,8 +175,8 @@ const ProductDetail = () => {
                         <button style={{
                             width: '100%',
                             padding: '1.2rem',
-                            backgroundColor: product.status === 'Active' ? 'var(--accent-color)' : '#333',
-                            color: product.status === 'Active' ? '#000' : '#777',
+                            backgroundColor: product.status === 'Active' ? 'var(--accent-color)' : 'var(--bg-secondary)',
+                            color: product.status === 'Active' ? '#fff' : 'var(--text-muted)',
                             cursor: product.status === 'Active' ? 'pointer' : 'not-allowed',
                             border: 'none',
                             fontSize: '1.1rem',
@@ -190,11 +191,11 @@ const ProductDetail = () => {
                     <div style={{ marginTop: '2rem', display: 'flex', gap: '2rem', justifyContent: 'center' }}>
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🛡️</div>
-                            <div style={{ fontSize: '0.8rem', color: '#888' }}>Safe Arrival Guarantee</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Safe Arrival Guarantee</div>
                         </div>
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>✈️</div>
-                            <div style={{ fontSize: '0.8rem', color: '#888' }}>Global Transhipping</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Global Transhipping</div>
                         </div>
                     </div>
                 </div>

@@ -1,29 +1,40 @@
 :root {
-  /* Color Palette - Dark Blue Ocean Deep */
-  --bg-primary: #001219;
-  /* The Abyss */
-  --bg-secondary: #002633;
-  /* Deep Sea */
-  --bg-card: #003647;
-  /* Card Blue */
-  --bg-overlay: rgba(0, 18, 25, 0.9);
+  /* Color Palette - Aquatic Retail (LiveAquaria-inspired light theme) */
+  --bg-primary: #ffffff;
+  /* Page background */
+  --bg-secondary: #eef4f9;
+  /* Light blue section background */
+  --bg-card: #ffffff;
+  /* Card surface */
+  --bg-overlay: rgba(255, 255, 255, 0.96);
 
-  --text-primary: #E0F7FA;
-  /* Bioluminescent Glow */
-  --text-secondary: #81D4FA;
-  --text-muted: #4ba3c7;
+  --navy-dark: #002a4e;
+  /* Utility bar */
+  --navy: #00457c;
+  /* Category nav, footer */
+  --brand-blue: #0067b1;
+  /* Links, headings, active states */
+  --brand-blue-dark: #00538e;
+  --brand-blue-light: #eaf4fb;
 
-  --accent-color: #00E5FF;
-  /* Electric Cyan */
-  --accent-hover: #18FFFF;
+  --text-primary: #21313f;
+  --text-secondary: #51677a;
+  --text-muted: #7e93a5;
 
-  --status-sold: #546E7A;
-  --status-new: #00C853;
-  --status-error: #FF5252;
+  --accent-color: #f47b20;
+  /* CTA Orange */
+  --accent-hover: #d96812;
 
-  --font-main: 'Inter', sans-serif;
+  --sale-red: #cc2229;
+  --status-sold: #8296a6;
+  --status-new: #2e7d32;
+  --status-error: #d32f2f;
+
+  --border-color: #d9e2ea;
+
+  --font-main: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   --font-display: 'Playfair Display', serif;
-  /* For headings to look posh */
+  /* Reserved for the brand logotype */
 
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
@@ -34,8 +45,8 @@
   --radius-md: 8px;
   --radius-lg: 16px;
 
-  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.7);
+  --shadow-card: 0 1px 3px rgba(16, 42, 67, 0.08), 0 1px 2px rgba(16, 42, 67, 0.06);
+  --shadow-hover: 0 10px 28px rgba(16, 42, 67, 0.16);
 
   --transition-fast: 0.2s ease;
   --transition-smooth: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);

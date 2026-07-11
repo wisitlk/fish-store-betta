@@ -1,5 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import ProductForm from '../components/ProductForm';
+import { API_URL } from '../config/api';
+import { PLACEHOLDER_IMG } from '../assets/placeholder';
+
+const thStyle = {
+    padding: '0.85rem 1rem',
+    fontSize: '0.75rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    color: 'var(--text-secondary)'
+};
+
+const tdStyle = { padding: '0.85rem 1rem' };
+
+const statusPill = (status) => {
+    const colors = {
+        Active: { bg: '#e6f4ea', fg: 'var(--status-new)' },
+        Sold: { bg: '#eceff1', fg: 'var(--status-sold)' },
+        Draft: { bg: '#fff3e0', fg: 'var(--accent-hover)' }
+    };
+    const c = colors[status] || colors.Draft;
+    return {
+        backgroundColor: c.bg,
+        color: c.fg,
+        padding: '0.25rem 0.7rem',
+        borderRadius: '12px',
+        fontSize: '0.78rem',
+        fontWeight: 700
+    };
+};
+
+const actionBtn = (primary) => ({
+    padding: '0.35rem 0.75rem',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    backgroundColor: primary ? 'var(--brand-blue)' : 'var(--bg-card)',
+    color: primary ? '#fff' : 'var(--text-secondary)',
+    border: primary ? '1px solid var(--brand-blue)' : '1px solid var(--border-color)',
+    borderRadius: '4px'
+});
 
 const Admin = () => {
     const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'users'
@@ -7,13 +47,13 @@ const Admin = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [filter, setFilter] = useState('ALL'); // ALL, ACTIVE, SOLD
+    const [filter, setFilter] = useState('ALL'); // ALL, ACTIVE, SOLD, DRAFT
 
     const fetchProducts = () => {
         const token = localStorage.getItem('auth_token');
-        fetch('http://localhost:8080/api/products?status=ALL', {
+        fetch(`${API_URL}/api/products?status=ALL`, {
             headers: {
-                'Authorization': `Bearer ${token} `
+                'Authorization': `Bearer ${token}`
             }
         })
             .then(res => res.json())
@@ -26,9 +66,9 @@ const Admin = () => {
 
     const fetchUsers = () => {
         const token = localStorage.getItem('auth_token');
-        fetch('http://localhost:8080/api/admin/users', {
+        fetch(`${API_URL}/api/admin/users`, {
             headers: {
-                'Authorization': `Bearer ${token} `
+                'Authorization': `Bearer ${token}`
             }
         })
             .then(res => res.json())
@@ -45,7 +85,7 @@ const Admin = () => {
 
     const handleUpdateStatus = (id, newStatus) => {
         const token = localStorage.getItem('auth_token');
-        fetch(`http://localhost:8080/api/admin/products/${id}/status`, {
+        fetch(`${API_URL}/api/admin/products/${id}/status`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +105,7 @@ const Admin = () => {
         if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
 
         const token = localStorage.getItem('auth_token');
-        fetch(`http://localhost:8080/api/admin/users/${id}/role`, {
+        fetch(`${API_URL}/api/admin/users/${id}/role`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -94,9 +134,9 @@ const Admin = () => {
                 return images[0];
             }
         } catch (e) {
-            return 'https://via.placeholder.com/50';
+            return PLACEHOLDER_IMG;
         }
-        return 'https://via.placeholder.com/50';
+        return PLACEHOLDER_IMG;
     };
 
     const filteredProducts = products.filter(p => {
@@ -107,216 +147,223 @@ const Admin = () => {
         return true;
     });
 
-    return (
-        <div className="container section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1>Admin Dashboard</h1>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button
-                        onClick={() => setActiveTab('inventory')}
-                        style={{
-                            backgroundColor: activeTab === 'inventory' ? 'var(--accent-color)' : 'transparent',
-                            color: activeTab === 'inventory' ? '#000' : 'var(--text-secondary)',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--accent-color)',
-                            padding: '0.8rem 1.5rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        INVENTORY
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        style={{
-                            backgroundColor: activeTab === 'users' ? 'var(--accent-color)' : 'transparent',
-                            color: activeTab === 'users' ? '#000' : 'var(--text-secondary)',
-                            fontWeight: 'bold',
-                            border: '1px solid var(--accent-color)',
-                            padding: '0.8rem 1.5rem',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        USERS
-                    </button>
-                </div>
-            </div>
+    const stats = [
+        { label: 'Total Fish', value: products.length, color: 'var(--brand-blue)' },
+        { label: 'Active Listings', value: products.filter(p => p.status === 'Active').length, color: 'var(--status-new)' },
+        { label: 'Sold', value: products.filter(p => p.status === 'Sold').length, color: 'var(--status-sold)' },
+        { label: 'Drafts', value: products.filter(p => p.status === 'Draft').length, color: 'var(--accent-color)' },
+    ];
 
-            {activeTab === 'inventory' ? (
-                <>
-                    {showForm ? (
-                        <div style={{ marginBottom: '3rem' }}>
-                            <ProductForm onSuccess={() => { setShowForm(false); fetchProducts(); }} onCancel={() => setShowForm(false)} />
-                        </div>
-                    ) : (
-                        <div style={{ marginBottom: '2rem', textAlign: 'right' }}>
+    const cardStyle = {
+        backgroundColor: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-card)'
+    };
+
+    return (
+        <div style={{ backgroundColor: 'var(--bg-secondary)', minHeight: '100%' }}>
+            <div className="container" style={{ padding: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '1.6rem' }}>Admin Dashboard</h1>
+                        <p style={{ margin: '0.2rem 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                            Manage inventory, listings, and customer accounts
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.25rem' }}>
+                        {[
+                            { key: 'inventory', label: '📦 Inventory' },
+                            { key: 'users', label: '👤 Users' }
+                        ].map(tab => (
                             <button
-                                onClick={() => setShowForm(true)}
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
                                 style={{
-                                    backgroundColor: 'var(--accent-color)',
-                                    color: '#000',
-                                    fontWeight: 'bold',
+                                    backgroundColor: activeTab === tab.key ? 'var(--brand-blue)' : 'transparent',
+                                    color: activeTab === tab.key ? '#fff' : 'var(--text-secondary)',
+                                    fontWeight: 600,
                                     border: 'none',
-                                    padding: '0.8rem 1.5rem',
+                                    padding: '0.55rem 1.4rem',
                                     borderRadius: '4px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem'
                                 }}
                             >
-                                + ADD NEW FISH
+                                {tab.label}
                             </button>
-                        </div>
-                    )}
+                        ))}
+                    </div>
+                </div>
 
-                    {/* Inventory List */}
-                    <div style={{ backgroundColor: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-md)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                            <h3>Inventory Management</h3>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {['ALL', 'ACTIVE', 'SOLD', 'DRAFT'].map(f => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setFilter(f)}
-                                        style={{
-                                            backgroundColor: filter === f ? 'var(--text-primary)' : 'transparent',
-                                            color: filter === f ? 'var(--bg-primary)' : 'var(--text-secondary)',
-                                            border: '1px solid var(--text-secondary)',
-                                            padding: '0.3rem 0.8rem',
-                                            fontSize: '0.8rem',
-                                            borderRadius: '20px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {f}
-                                    </button>
-                                ))}
+                {activeTab === 'inventory' ? (
+                    <>
+                        {/* Stat cards */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                            gap: '1rem',
+                            marginBottom: '1.5rem'
+                        }}>
+                            {stats.map(s => (
+                                <div key={s.label} style={{ ...cardStyle, padding: '1rem 1.25rem', borderTop: `3px solid ${s.color}` }}>
+                                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {showForm ? (
+                            <div style={{ marginBottom: '2rem' }}>
+                                <ProductForm onSuccess={() => { setShowForm(false); fetchProducts(); }} onCancel={() => setShowForm(false)} />
+                            </div>
+                        ) : null}
+
+                        {/* Inventory List */}
+                        <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Inventory Management</h3>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    {['ALL', 'ACTIVE', 'SOLD', 'DRAFT'].map(f => (
+                                        <button
+                                            key={f}
+                                            onClick={() => setFilter(f)}
+                                            style={{
+                                                backgroundColor: filter === f ? 'var(--navy)' : 'var(--bg-card)',
+                                                color: filter === f ? '#fff' : 'var(--text-secondary)',
+                                                border: filter === f ? '1px solid var(--navy)' : '1px solid var(--border-color)',
+                                                padding: '0.3rem 0.9rem',
+                                                fontSize: '0.78rem',
+                                                fontWeight: 600,
+                                                borderRadius: '20px',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            {f}
+                                        </button>
+                                    ))}
+                                    {!showForm && (
+                                        <button
+                                            onClick={() => setShowForm(true)}
+                                            className="btn-cta"
+                                            style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem', marginLeft: '0.5rem' }}
+                                        >
+                                            + Add New Fish
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-secondary)' }}>
+                                            <th style={thStyle}>Fish</th>
+                                            <th style={thStyle}>SKU</th>
+                                            <th style={thStyle}>Name</th>
+                                            <th style={thStyle}>Price</th>
+                                            <th style={thStyle}>Status</th>
+                                            <th style={thStyle}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredProducts.map(p => (
+                                            <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                                <td style={tdStyle}>
+                                                    <img
+                                                        src={`${API_URL}${getThumbnail(p)}`}
+                                                        onError={(e) => {
+                                                            const raw = getThumbnail(p);
+                                                            const fallback = raw.startsWith('http') ? raw : PLACEHOLDER_IMG;
+                                                            if (e.target.src !== fallback) e.target.src = fallback;
+                                                        }}
+                                                        alt={p.name}
+                                                        style={{ width: '46px', height: '46px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                                                    />
+                                                </td>
+                                                <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{p.sku || p.id.substring(0, 8)}</td>
+                                                <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--brand-blue)' }}>{p.name}</td>
+                                                <td style={{ ...tdStyle, fontWeight: 700 }}>${p.price}</td>
+                                                <td style={tdStyle}>
+                                                    <span style={statusPill(p.status)}>{p.status}</span>
+                                                </td>
+                                                <td style={tdStyle}>
+                                                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                        {p.status !== 'Active' && (
+                                                            <button onClick={() => handleUpdateStatus(p.id, 'Active')} style={actionBtn(true)} title="Mark Active">
+                                                                Activate
+                                                            </button>
+                                                        )}
+                                                        {p.status !== 'Sold' && (
+                                                            <button onClick={() => handleUpdateStatus(p.id, 'Sold')} style={actionBtn(false)} title="Mark Sold">
+                                                                Mark Sold
+                                                            </button>
+                                                        )}
+                                                        {p.status !== 'Draft' && (
+                                                            <button onClick={() => handleUpdateStatus(p.id, 'Draft')} style={actionBtn(false)} title="Move to Draft">
+                                                                Draft
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {filteredProducts.length === 0 && (
+                                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No products found in this category.
+                                    </div>
+                                )}
                             </div>
                         </div>
-
+                    </>
+                ) : (
+                    <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                        <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>User Management</h3>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
-                                    <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--text-muted)', color: 'var(--text-secondary)' }}>
-                                        <th style={{ padding: '1rem' }}>Fish</th>
-                                        <th style={{ padding: '1rem' }}>SKU</th>
-                                        <th style={{ padding: '1rem' }}>Name</th>
-                                        <th style={{ padding: '1rem' }}>Price</th>
-                                        <th style={{ padding: '1rem' }}>Status</th>
-                                        <th style={{ padding: '1rem' }}>Actions</th>
+                                    <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-secondary)' }}>
+                                        <th style={thStyle}>Name</th>
+                                        <th style={thStyle}>Email</th>
+                                        <th style={thStyle}>Role</th>
+                                        <th style={thStyle}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredProducts.map(p => (
-                                        <tr key={p.id} style={{ borderBottom: '1px solid var(--bg-secondary)' }}>
-                                            <td style={{ padding: '1rem' }}>
-                                                <img
-                                                    src={`http://localhost:8080${getThumbnail(p)}`}
-                                                    onError={(e) => { e.target.src = getThumbnail(p).startsWith('http') ? getThumbnail(p) : 'https://via.placeholder.com/50' }}
-                                                    alt={p.name}
-                                                    style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50%' }}
-                                                />
-                                            </td>
-                                            <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{p.sku || p.id.substring(0, 8)}</td>
-                                            <td style={{ padding: '1rem', fontWeight: '500' }}>{p.name}</td>
-                                            <td style={{ padding: '1rem' }}>${p.price}</td>
-                                            <td style={{ padding: '1rem' }}>
+                                    {users.map(u => (
+                                        <tr key={u.ID} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <td style={{ ...tdStyle, fontWeight: 600 }}>{u.Name}</td>
+                                            <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{u.Email}</td>
+                                            <td style={tdStyle}>
                                                 <span style={{
-                                                    color: p.status === 'Active' ? 'var(--status-new)' :
-                                                        p.status === 'Sold' ? 'var(--status-sold)' : 'var(--text-muted)',
-                                                    fontWeight: 'bold'
+                                                    backgroundColor: u.Role === 'admin' ? 'var(--navy)' : 'var(--bg-secondary)',
+                                                    color: u.Role === 'admin' ? '#fff' : 'var(--text-secondary)',
+                                                    padding: '0.25rem 0.7rem',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.78rem',
+                                                    fontWeight: 700
                                                 }}>
-                                                    {p.status}
+                                                    {u.Role.toUpperCase()}
                                                 </span>
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    {p.status !== 'Active' && (
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(p.id, 'Active')}
-                                                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', cursor: 'pointer', backgroundColor: '#444', color: '#fff', border: 'none', borderRadius: '3px' }}
-                                                            title="Mark Active"
-                                                        >
-                                                            ACTIVATE
-                                                        </button>
-                                                    )}
-                                                    {p.status !== 'Sold' && (
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(p.id, 'Sold')}
-                                                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', cursor: 'pointer', backgroundColor: 'transparent', border: '1px solid #555', color: '#aaa', borderRadius: '3px' }}
-                                                            title="Mark Sold"
-                                                        >
-                                                            SOLD
-                                                        </button>
-                                                    )}
-                                                    {p.status !== 'Draft' && (
-                                                        <button
-                                                            onClick={() => handleUpdateStatus(p.id, 'Draft')}
-                                                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', cursor: 'pointer', backgroundColor: 'transparent', border: '1px solid #555', color: '#aaa', borderRadius: '3px' }}
-                                                            title="Move to Draft"
-                                                        >
-                                                            DRAFT
-                                                        </button>
-                                                    )}
-                                                </div>
+                                            <td style={tdStyle}>
+                                                <button
+                                                    onClick={() => handleUpdateRole(u.ID, u.Role)}
+                                                    style={actionBtn(u.Role !== 'admin')}
+                                                >
+                                                    {u.Role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                            {filteredProducts.length === 0 && (
-                                <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-                                    No products found in this category.
-                                </div>
-                            )}
                         </div>
                     </div>
-                </>
-            ) : (
-                <div style={{ backgroundColor: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-md)' }}>
-                    <h3>User Management</h3>
-                    <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--text-muted)', color: 'var(--text-secondary)' }}>
-                                    <th style={{ padding: '1rem' }}>Name</th>
-                                    <th style={{ padding: '1rem' }}>Email</th>
-                                    <th style={{ padding: '1rem' }}>Role</th>
-                                    <th style={{ padding: '1rem' }}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map(u => (
-                                    <tr key={u.ID} style={{ borderBottom: '1px solid var(--bg-secondary)' }}>
-                                        <td style={{ padding: '1rem', fontWeight: '500' }}>{u.Name}</td>
-                                        <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{u.Email}</td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <span style={{
-                                                backgroundColor: u.Role === 'admin' ? 'var(--accent-color)' : 'transparent',
-                                                color: u.Role === 'admin' ? '#000' : 'var(--text-primary)',
-                                                padding: '0.2rem 0.6rem',
-                                                borderRadius: '4px',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 'bold',
-                                                border: u.Role === 'admin' ? 'none' : '1px solid var(--text-muted)'
-                                            }}>
-                                                {u.Role.toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '1rem' }}>
-                                            <button
-                                                onClick={() => handleUpdateRole(u.ID, u.Role)}
-                                                style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', cursor: 'pointer', backgroundColor: '#444', color: '#fff', border: 'none', borderRadius: '3px' }}
-                                            >
-                                                {u.Role === 'admin' ? 'REVOKE ADMIN' : 'MAKE ADMIN'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
