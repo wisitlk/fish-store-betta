@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { API_URL } from '../config/api';
+import { PLACEHOLDER_IMG } from '../assets/placeholder';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -72,6 +73,7 @@ const ProductDetail = () => {
                         ) : (
                             <img
                                 src={getFullUrl(activeMedia?.url)}
+                                onError={(e) => { if (e.target.src !== PLACEHOLDER_IMG) e.target.src = PLACEHOLDER_IMG; }}
                                 alt={product.name}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
@@ -98,7 +100,7 @@ const ProductDetail = () => {
                                 {media.type === 'video' ? (
                                     <video src={getFullUrl(media.url)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <img src={getFullUrl(media.url)} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={getFullUrl(media.url)} onError={(e) => { if (e.target.src !== PLACEHOLDER_IMG) e.target.src = PLACEHOLDER_IMG; }} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 )}
                             </div>
                         ))}
