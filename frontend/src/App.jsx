@@ -1,4 +1,4 @@
-import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import Lenis from '@studio-freight/lenis';
@@ -9,10 +9,20 @@ import Admin from './pages/Admin';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import { GOOGLE_CLIENT_ID } from './config/api';
+import { track } from './lib/tracker';
 
 // Static demo builds (VITE_DEMO=true) run from a sandboxed page where the
 // history API is unavailable, so they fall back to hash-based routing.
 const Router = import.meta.env.VITE_DEMO === 'true' ? HashRouter : BrowserRouter;
+
+// Records a page_view event on every route change.
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    track('page_view', { path: location.pathname });
+  }, [location.pathname]);
+  return null;
+}
 
 function App() {
   useEffect(() => {
@@ -37,6 +47,7 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <Router>
+        <PageViewTracker />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Navbar />
           <main style={{ flex: 1 }}>

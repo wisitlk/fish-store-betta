@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Hero from '../components/Hero';
 import TrustSignals from '../components/TrustSignals';
 import ProductGrid from '../components/ProductGrid';
+import { captureLead } from '../lib/tracker';
 
 const BREEDS = [
     { name: 'Halfmoon', desc: '180° tail spread', gradient: 'linear-gradient(135deg, #b71c1c, #ff6f00)' },
@@ -18,7 +19,9 @@ const Home = () => {
 
     const handleSubscribe = (e) => {
         e.preventDefault();
-        if (email.trim()) setSubscribed(true);
+        if (!email.trim()) return;
+        captureLead(email.trim()).catch(() => { });
+        setSubscribed(true);
     };
 
     return (

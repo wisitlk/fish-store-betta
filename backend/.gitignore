@@ -3,3 +3,5 @@ uploads/
 .env
 docs/
 .DS_Store
+*.db-wal
+*.db-shm

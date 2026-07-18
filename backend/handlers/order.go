@@ -41,13 +41,26 @@ func CreateOrder(c *gin.Context) {
 
 	order.TotalAmount = total
 	order.IsPaid = false // Pending payment integration
-	
+
 	if err := tx.Create(&order).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create order"})
 		return
 	}
-	
+
+	// Feed the customer data platform: profile + purchase event.
+	if order.CustomerEmail != "" {
+		UpsertCustomer(tx, order.CustomerEmail, order.CustomerName, order.Country, "checkout", false, total)
+		for _, item := range order.Items {
+			tx.Create(&models.Event{
+				SessionID: order.SessionID,
+				Email:     order.CustomerEmail,
+				Type:      "purchase",
+				ProductID: item.ID,
+			})
+		}
+	}
+
 	tx.Commit()
 	c.JSON(http.StatusCreated, order)
 }

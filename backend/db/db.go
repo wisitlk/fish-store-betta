@@ -25,9 +25,11 @@ func Init() {
 	} else {
 		log.Println("Using SQLite database")
 		// Use pure Go SQLite driver for local development
+		// WAL + busy_timeout so concurrent writes (e.g. analytics events)
+		// don't fail with SQLITE_BUSY.
 		dialector = sqlite.Dialector{
 			DriverName: "sqlite",
-			DSN:        "aquatic.db",
+			DSN:        "aquatic.db?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)",
 		}
 	}
 
@@ -37,7 +39,7 @@ func Init() {
 	}
 
 	// Migrate the schema
-	err = DB.AutoMigrate(&models.Product{}, &models.Order{}, &models.Transhipper{}, &models.User{})
+	err = DB.AutoMigrate(&models.Product{}, &models.Order{}, &models.Transhipper{}, &models.User{}, &models.Customer{}, &models.Event{})
 	if err != nil {
 		log.Fatal("failed to migrate database")
 	}

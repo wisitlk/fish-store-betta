@@ -56,12 +56,40 @@ type User struct {
 	Role     string `json:"role" gorm:"default:'user'"` // 'user' or 'admin'
 }
 
+// Customer is a unified CDP profile assembled from storefront activity
+// (checkout, newsletter signups, logins). Keyed by email.
+type Customer struct {
+	gorm.Model
+	Email      string    `gorm:"uniqueIndex" json:"email"`
+	Name       string    `json:"name"`
+	Source     string    `json:"source"` // newsletter | checkout | google_login
+	Country    string    `json:"country"`
+	Consent    bool      `json:"consent"` // marketing consent (newsletter opt-in)
+	OrderCount int       `json:"order_count"`
+	TotalSpent float64   `json:"total_spent"`
+	LastSeenAt time.Time `json:"last_seen_at"`
+}
+
+// Event is a raw behavioral event captured from the storefront.
+type Event struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	SessionID string    `gorm:"index;size:64" json:"session_id"`
+	Email     string    `gorm:"index;size:255" json:"email"` // set once the visitor identifies
+	Type      string    `gorm:"index;size:32" json:"type"`   // page_view | product_view | add_to_cart | checkout_started | purchase | newsletter_signup
+	ProductID string    `gorm:"size:64" json:"product_id"`
+	Path      string    `gorm:"size:255" json:"path"`
+	Referrer  string    `gorm:"size:255" json:"referrer"`
+	Metadata  string    `gorm:"size:1024" json:"metadata"` // free-form JSON
+}
+
 type Order struct {
 	gorm.Model
 	CustomerName    string `json:"customer_name"`
 	CustomerEmail   string `json:"customer_email"`
 	ShippingAddress string `json:"shipping_address"`
 	Country         string `json:"country"`
+	SessionID       string `gorm:"size:64" json:"session_id"` // analytics session for attribution
 
 	TranshipperID uint        `json:"transhipper_id"`
 	Transhipper   Transhipper `json:"transhipper"`

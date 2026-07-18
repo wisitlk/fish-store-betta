@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { API_URL } from '../config/api';
 import { PLACEHOLDER_IMG } from '../assets/placeholder';
+import { track } from '../lib/tracker';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -12,6 +13,7 @@ const ProductDetail = () => {
         fetch(`${API_URL}/api/products/${id}`)
             .then(res => res.json())
             .then(data => {
+                if (!data || !data.id) return; // error payload, keep loading state
                 setProduct(data);
                 if (data.media_urls) {
                     const media = JSON.parse(data.media_urls);
@@ -22,6 +24,7 @@ const ProductDetail = () => {
                 }
             })
             .catch(err => console.error(err));
+        track('product_view', { product_id: id });
     }, [id]);
 
     if (!product) return <div className="container section">Loading...</div>;
@@ -173,7 +176,11 @@ const ProductDetail = () => {
                         </div>
                     </div>
 
-                    <Link to={product.status === 'Active' ? `/checkout?product=${product.id}` : '#'} style={{ textDecoration: 'none' }}>
+                    <Link
+                        to={product.status === 'Active' ? `/checkout?product=${product.id}` : '#'}
+                        onClick={() => { if (product.status === 'Active') track('add_to_cart', { product_id: product.id }); }}
+                        style={{ textDecoration: 'none' }}
+                    >
                         <button style={{
                             width: '100%',
                             padding: '1.2rem',

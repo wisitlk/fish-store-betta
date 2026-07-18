@@ -41,10 +41,22 @@ const actionBtn = (primary) => ({
     borderRadius: '4px'
 });
 
+const EVENT_LABELS = {
+    page_view: { label: 'Page View', color: 'var(--text-muted)' },
+    product_view: { label: 'Product View', color: 'var(--brand-blue)' },
+    add_to_cart: { label: 'Add to Cart', color: 'var(--accent-color)' },
+    checkout_started: { label: 'Checkout Started', color: 'var(--navy)' },
+    purchase: { label: 'Purchase', color: 'var(--status-new)' },
+    newsletter_signup: { label: 'Newsletter Signup', color: '#7b1fa2' },
+    search: { label: 'Search', color: 'var(--text-secondary)' },
+};
+
 const Admin = () => {
-    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'users'
+    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'users' | 'analytics' | 'customers'
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
+    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [filter, setFilter] = useState('ALL'); // ALL, ACTIVE, SOLD, DRAFT
@@ -78,9 +90,31 @@ const Admin = () => {
             .catch(err => console.error(err));
     };
 
+    const fetchAnalytics = () => {
+        const token = localStorage.getItem('auth_token');
+        fetch(`${API_URL}/api/admin/analytics`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setAnalytics(data))
+            .catch(err => console.error(err));
+    };
+
+    const fetchCustomers = () => {
+        const token = localStorage.getItem('auth_token');
+        fetch(`${API_URL}/api/admin/customers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => setCustomers(data || []))
+            .catch(err => console.error(err));
+    };
+
     useEffect(() => {
         if (activeTab === 'inventory') fetchProducts();
         if (activeTab === 'users') fetchUsers();
+        if (activeTab === 'analytics') fetchAnalytics();
+        if (activeTab === 'customers') fetchCustomers();
     }, [activeTab]);
 
     const handleUpdateStatus = (id, newStatus) => {
@@ -174,6 +208,8 @@ const Admin = () => {
                     <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '0.25rem' }}>
                         {[
                             { key: 'inventory', label: '📦 Inventory' },
+                            { key: 'analytics', label: '📈 Analytics' },
+                            { key: 'customers', label: '📇 Customers' },
                             { key: 'users', label: '👤 Users' }
                         ].map(tab => (
                             <button
@@ -318,6 +354,204 @@ const Admin = () => {
                             </div>
                         </div>
                     </>
+                ) : activeTab === 'analytics' ? (
+                    !analytics ? (
+                        <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                            Loading analytics...
+                        </div>
+                    ) : (
+                        <>
+                            {/* Sales stat cards */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                gap: '1rem',
+                                marginBottom: '1.5rem'
+                            }}>
+                                {[
+                                    { label: 'Total Revenue', value: `$${(analytics.revenue || 0).toFixed(2)}`, color: 'var(--status-new)' },
+                                    { label: 'Orders', value: analytics.orders || 0, color: 'var(--brand-blue)' },
+                                    { label: 'Customer Profiles', value: analytics.customers || 0, color: 'var(--navy)' },
+                                    { label: 'Newsletter Subscribers', value: analytics.subscribers || 0, color: 'var(--accent-color)' },
+                                ].map(s => (
+                                    <div key={s.label} style={{ ...cardStyle, padding: '1rem 1.25rem', borderTop: `3px solid ${s.color}` }}>
+                                        <div style={{ fontSize: '1.8rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                                {/* Conversion funnel */}
+                                <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                                    <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.1rem' }}>Conversion Funnel</h3>
+                                    <p style={{ margin: '0 0 1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        Unique sessions reaching each step
+                                    </p>
+                                    {(analytics.funnel || []).map((step, i, arr) => {
+                                        const max = Math.max(...arr.map(s => s.sessions), 1);
+                                        const pct = Math.round((step.sessions / max) * 100);
+                                        const info = EVENT_LABELS[step.type] || { label: step.type, color: 'var(--text-muted)' };
+                                        return (
+                                            <div key={step.type} style={{ marginBottom: '0.85rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '0.25rem' }}>
+                                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{info.label}</span>
+                                                    <span style={{ color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+                                                        {step.sessions} sessions · {step.count} events
+                                                    </span>
+                                                </div>
+                                                <div style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '4px', height: '14px', overflow: 'hidden' }}>
+                                                    <div style={{
+                                                        width: `${Math.max(pct, 2)}%`,
+                                                        height: '100%',
+                                                        backgroundColor: info.color,
+                                                        borderRadius: '4px',
+                                                        transition: 'width 0.4s ease'
+                                                    }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Top products */}
+                                <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                                    <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>Most Viewed Fish</h3>
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <thead>
+                                                <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-secondary)' }}>
+                                                    <th style={thStyle}>Product</th>
+                                                    <th style={thStyle}>Views</th>
+                                                    <th style={thStyle}>Add to Cart</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(analytics.top_products || []).map(tp => (
+                                                    <tr key={tp.product_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                                        <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--brand-blue)' }}>{tp.name}</td>
+                                                        <td style={{ ...tdStyle, fontVariantNumeric: 'tabular-nums' }}>{tp.views}</td>
+                                                        <td style={{ ...tdStyle, fontVariantNumeric: 'tabular-nums' }}>{tp.carts}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        {(!analytics.top_products || analytics.top_products.length === 0) && (
+                                            <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                                No product events recorded yet.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Recent events */}
+                            <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                                <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>Recent Activity</h3>
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-secondary)' }}>
+                                                <th style={thStyle}>Time</th>
+                                                <th style={thStyle}>Event</th>
+                                                <th style={thStyle}>Visitor</th>
+                                                <th style={thStyle}>Product</th>
+                                                <th style={thStyle}>Page</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(analytics.recent_events || []).map(ev => {
+                                                const info = EVENT_LABELS[ev.type] || { label: ev.type, color: 'var(--text-muted)' };
+                                                return (
+                                                    <tr key={ev.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                                        <td style={{ ...tdStyle, color: 'var(--text-muted)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                                                            {new Date(ev.created_at).toLocaleString()}
+                                                        </td>
+                                                        <td style={tdStyle}>
+                                                            <span style={{
+                                                                color: '#fff',
+                                                                backgroundColor: info.color,
+                                                                padding: '0.2rem 0.6rem',
+                                                                borderRadius: '10px',
+                                                                fontSize: '0.72rem',
+                                                                fontWeight: 700,
+                                                                whiteSpace: 'nowrap'
+                                                            }}>{info.label}</span>
+                                                        </td>
+                                                        <td style={{ ...tdStyle, fontSize: '0.85rem' }}>
+                                                            {ev.email
+                                                                ? <span style={{ fontWeight: 600 }}>{ev.email}</span>
+                                                                : <span style={{ color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: '0.78rem' }}>{ev.session_id.slice(0, 14)}…</span>}
+                                                        </td>
+                                                        <td style={{ ...tdStyle, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ev.product_id || '—'}</td>
+                                                        <td style={{ ...tdStyle, fontSize: '0.82rem', color: 'var(--text-muted)' }}>{ev.path || '—'}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                    {(!analytics.recent_events || analytics.recent_events.length === 0) && (
+                                        <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            No activity recorded yet. Events appear as visitors browse the store.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )
+                ) : activeTab === 'customers' ? (
+                    <div style={{ ...cardStyle, padding: '1.5rem' }}>
+                        <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.1rem' }}>Customer Profiles</h3>
+                        <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            Unified profiles collected from checkout, newsletter signups, and logins
+                        </p>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ textAlign: 'left', backgroundColor: 'var(--bg-secondary)' }}>
+                                        <th style={thStyle}>Email</th>
+                                        <th style={thStyle}>Name</th>
+                                        <th style={thStyle}>Source</th>
+                                        <th style={thStyle}>Marketing Opt-in</th>
+                                        <th style={thStyle}>Orders</th>
+                                        <th style={thStyle}>Total Spent</th>
+                                        <th style={thStyle}>Last Seen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {customers.map(cu => (
+                                        <tr key={cu.email} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                            <td style={{ ...tdStyle, fontWeight: 600, color: 'var(--brand-blue)' }}>{cu.email}</td>
+                                            <td style={tdStyle}>{cu.name || '—'}</td>
+                                            <td style={tdStyle}>
+                                                <span style={{
+                                                    backgroundColor: 'var(--bg-secondary)',
+                                                    color: 'var(--text-secondary)',
+                                                    padding: '0.2rem 0.6rem',
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 700
+                                                }}>{cu.source || 'unknown'}</span>
+                                            </td>
+                                            <td style={{ ...tdStyle, color: cu.consent ? 'var(--status-new)' : 'var(--text-muted)', fontWeight: 600 }}>
+                                                {cu.consent ? '✓ Yes' : 'No'}
+                                            </td>
+                                            <td style={{ ...tdStyle, fontVariantNumeric: 'tabular-nums' }}>{cu.order_count}</td>
+                                            <td style={{ ...tdStyle, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>${(cu.total_spent || 0).toFixed(2)}</td>
+                                            <td style={{ ...tdStyle, color: 'var(--text-muted)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
+                                                {cu.last_seen_at ? new Date(cu.last_seen_at).toLocaleDateString() : '—'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {customers.length === 0 && (
+                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    No customer profiles yet. Profiles are created when visitors check out or subscribe.
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 ) : (
                     <div style={{ ...cardStyle, padding: '1.5rem' }}>
                         <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>User Management</h3>

@@ -67,6 +67,10 @@ func main() {
 		api.GET("/transhippers", handlers.ListTranshippers)
 		api.POST("/orders", handlers.CreateOrder)
 
+		// Data collection (analytics + lead capture)
+		api.POST("/track", handlers.TrackEvent)
+		api.POST("/leads", handlers.CreateLead)
+
 		// Auth
 		api.POST("/auth/google", handlers.VerifyGoogleToken)
 
@@ -82,6 +86,10 @@ func main() {
 			// User Management
 			admin.GET("/users", handlers.ListUsers)
 			admin.PUT("/users/:id/role", handlers.UpdateUserRole)
+
+			// Sales analytics & customer data platform
+			admin.GET("/analytics", handlers.AnalyticsSummary)
+			admin.GET("/customers", handlers.ListCustomers)
 		}
 	}
 

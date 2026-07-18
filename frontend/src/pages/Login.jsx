@@ -3,6 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { API_ENDPOINTS } from '../config/api';
+import { identify } from '../lib/tracker';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -41,6 +42,7 @@ const Login = () => {
             // Store token
             localStorage.setItem('auth_token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+            identify(data.user.email);
 
             // Redirect based on role
             if (data.user.role === 'admin') {

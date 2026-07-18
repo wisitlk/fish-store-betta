@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PLACEHOLDER_IMG } from '../assets/placeholder';
+import { track } from '../lib/tracker';
 
 const ProductCard = ({ product }) => {
     const isSold = product.status === 'Sold';
@@ -113,10 +114,13 @@ const ProductCard = ({ product }) => {
                             )}
                         </div>
                         {!isSold && (
-                            <button className="btn-cta" style={{
-                                padding: '0.5rem 1.1rem',
-                                fontSize: '0.85rem'
-                            }}>Add to Cart</button>
+                            <button
+                                className="btn-cta"
+                                onClick={() => track('add_to_cart', { product_id: product.id })}
+                                style={{
+                                    padding: '0.5rem 1.1rem',
+                                    fontSize: '0.85rem'
+                                }}>Add to Cart</button>
                         )}
                     </div>
                 </div>
