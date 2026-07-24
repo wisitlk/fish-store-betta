@@ -1,7 +1,10 @@
 *.db
 uploads/
 .env
-docs/
+# docs/docs.go is tracked so a clean checkout builds; the specs swag
+# regenerates alongside it are not.
+docs/swagger.json
+docs/swagger.yaml
 .DS_Store
 *.db-wal
 *.db-shm
