@@ -238,3 +238,44 @@ func ListCustomers(c *gin.Context) {
 	db.DB.Order("total_spent DESC, last_seen_at DESC").Find(&customers)
 	c.JSON(http.StatusOK, customers)
 }
+
+// ForgetCustomer godoc
+// @Summary Erase a customer's profile and behavioral history
+// @Description Right to erasure. Removes the CDP profile and every event
+// @Description linked to that email. Orders are retained (business records)
+// @Tags analytics
+// @Produce json
+// @Security BearerAuth
+// @Param email path string true "Customer email"
+// @Success 200 {object} map[string]interface{}
+// @Router /admin/customers/{email} [delete]
+func ForgetCustomer(c *gin.Context) {
+	email := c.Param("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email required"})
+		return
+	}
+
+	tx := db.DB.Begin()
+
+	eventsDeleted := tx.Where("email = ?", email).Delete(&models.Event{}).RowsAffected
+
+	// Hard delete so the profile does not linger as a soft-deleted row.
+	res := tx.Unscoped().Where("email = ?", email).Delete(&models.Customer{})
+	if res.Error != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to erase customer"})
+		return
+	}
+	if res.RowsAffected == 0 {
+		tx.Rollback()
+		c.JSON(http.StatusNotFound, gin.H{"error": "customer not found"})
+		return
+	}
+
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{
+		"erased":         email,
+		"events_deleted": eventsDeleted,
+	})
+}

@@ -156,6 +156,23 @@ const Admin = () => {
             .catch(err => console.error(err));
     };
 
+    const handleForgetCustomer = (email) => {
+        if (!window.confirm(
+            `Permanently erase ${email}?\n\nThis deletes their profile and all tracked events. Past orders are kept as business records. This cannot be undone.`
+        )) return;
+
+        const token = localStorage.getItem('auth_token');
+        fetch(`${API_URL}/api/admin/customers/${encodeURIComponent(email)}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => {
+                if (res.ok) fetchCustomers();
+                else alert('Failed to erase customer data');
+            })
+            .catch(err => console.error(err));
+    };
+
     const getThumbnail = (product) => {
         try {
             if (product.media_urls) {
@@ -516,6 +533,7 @@ const Admin = () => {
                                         <th style={thStyle}>Orders</th>
                                         <th style={thStyle}>Total Spent</th>
                                         <th style={thStyle}>Last Seen</th>
+                                        <th style={thStyle}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -540,6 +558,19 @@ const Admin = () => {
                                             <td style={{ ...tdStyle, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>${(cu.total_spent || 0).toFixed(2)}</td>
                                             <td style={{ ...tdStyle, color: 'var(--text-muted)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>
                                                 {cu.last_seen_at ? new Date(cu.last_seen_at).toLocaleDateString() : '—'}
+                                            </td>
+                                            <td style={tdStyle}>
+                                                <button
+                                                    onClick={() => handleForgetCustomer(cu.email)}
+                                                    style={{
+                                                        ...actionBtn(false),
+                                                        color: 'var(--sale-red)',
+                                                        borderColor: 'var(--sale-red)'
+                                                    }}
+                                                    title="Delete this profile and all of its tracked events"
+                                                >
+                                                    Erase Data
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}

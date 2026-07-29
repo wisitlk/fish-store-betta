@@ -8,6 +8,7 @@ import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
+import ConsentBanner from './components/ConsentBanner';
 import { GOOGLE_CLIENT_ID } from './config/api';
 import { track } from './lib/tracker';
 
@@ -48,6 +49,7 @@ function App() {
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <Router>
         <PageViewTracker />
+        <ConsentBanner />
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Navbar />
           <main style={{ flex: 1 }}>

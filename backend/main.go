@@ -34,6 +34,7 @@ import (
 
 func main() {
 	db.Init()
+	db.StartRetentionWorker()
 	r := gin.Default()
 
 	// CORS
@@ -90,6 +91,7 @@ func main() {
 			// Sales analytics & customer data platform
 			admin.GET("/analytics", handlers.AnalyticsSummary)
 			admin.GET("/customers", handlers.ListCustomers)
+			admin.DELETE("/customers/:email", handlers.ForgetCustomer)
 		}
 	}
 

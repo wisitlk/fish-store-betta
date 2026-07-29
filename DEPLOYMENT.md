@@ -45,7 +45,10 @@ git push -u origin main
    GOOGLE_CLIENT_ID=your_google_client_id
    JWT_SECRET=your_secret_key_minimum_32_characters
    FRONTEND_URL=https://yourdomain.com
+   EVENT_RETENTION_DAYS=90
    ```
+   `EVENT_RETENTION_DAYS` bounds how long raw analytics events are stored.
+   A purge runs at startup and daily thereafter; 0 disables it.
 6. Create a PostgreSQL database:
    - Click "New +" → "PostgreSQL"
    - Copy the "Internal Database URL"
